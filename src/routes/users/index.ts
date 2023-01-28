@@ -30,7 +30,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         const user = await fastify.db.users.findOne({key: "id", equals: id});
 
         if (!user) {
-            return reply.notFound("not found user");
+            return reply.notFound();
         }
         return user;
     }
@@ -251,6 +251,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         if(!updatedUser) {
             return reply.badRequest()
         }
+
         return updatedUser;
     }
   );

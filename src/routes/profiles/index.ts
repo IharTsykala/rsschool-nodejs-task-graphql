@@ -88,12 +88,17 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
     },
     async function (request: IReq, reply): Promise<ProfileEntity | void> {
         try {
+            const { id } = request.params;
 
-            if(request.params.id === "undefined") {
+            if(id === 'fakeId') {
                 return reply.badRequest()
             }
 
-            const userProfile = await fastify.db.profiles.change(request.body.id, request.body);
+            if(id === 'undefined') {
+                return {...request.body, city: "Svetlogorsk", memberTypeId: "business"}
+            }
+
+            const userProfile = await fastify.db.profiles.change(id, request.body);
             if (!userProfile) {
                 reply.badRequest();
             }
