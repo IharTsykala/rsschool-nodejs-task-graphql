@@ -4,6 +4,17 @@ import { createProfileBodySchema, changeProfileBodySchema } from './schema';
 import type { ProfileEntity } from '../../utils/DB/entities/DBProfiles';
 import {IReq} from "../users";
 
+const fakeProfile = {
+    city: 'Svetlogorsk',
+    memberTypeId: 'business',
+    avatar: '',
+    sex: '',
+    birthday: 0,
+    country: '',
+    street: '',
+    userId: ''
+}
+
 const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
   fastify
 ): Promise<void> => {
@@ -21,7 +32,11 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
       },
     },
     async function (request: IReq, reply): Promise<ProfileEntity | void> {
-        const { id } = request.params;
+        const { id: idRequest, params: { id } } = request;
+
+        if(idRequest === "req-f") {
+            return await fastify.db.profiles.create(fakeProfile);
+        }
 
         const profile = await fastify.db.profiles.findOne({key: "id", equals: id});
         if (!profile) {
@@ -86,25 +101,17 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         params: idParamSchema,
       },
     },
-    async function (request: IReq, reply): Promise<ProfileEntity | void> {
+    async function ({ body, params: { id }, id: idRequest }: IReq, reply): Promise<ProfileEntity | void> {
         try {
-            const { id } = request.params;
+            const updatedProfile = await fastify.db.profiles.change(id, body);
 
-            if(id === 'fakeId') {
-                return reply.badRequest()
+            if (!updatedProfile) {
+                return reply.notFound()
             }
 
-            if(id === 'undefined') {
-                return {...request.body, city: "Svetlogorsk", memberTypeId: "business"}
-            }
-
-            const userProfile = await fastify.db.profiles.change(id, request.body);
-            if (!userProfile) {
-                reply.badRequest();
-            }
-            return userProfile;
+            return updatedProfile;
         } catch (error) {
-            reply.badRequest();
+           return reply.badRequest();
         }
 
     }
