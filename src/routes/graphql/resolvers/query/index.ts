@@ -7,7 +7,7 @@ import {
 import { User, Profile, Post, MemberTypes } from '../../types';
 
 export const query =  new GraphQLObjectType({
-        name: 'Query',
+        name: 'query',
         fields: {
             users: {
                 type: new GraphQLList(User),

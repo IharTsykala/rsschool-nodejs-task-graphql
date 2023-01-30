@@ -6,7 +6,7 @@ import {query} from "./resolvers/query";
 import { mutation } from "./resolvers/mutation";
 import * as depthLimit from 'graphql-depth-limit';
 
-const DEPTH = 6;
+const DEPTH = 5;
 
 const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
   fastify
@@ -21,8 +21,9 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
     async function (request: IReq, reply) {
         const source = String(request.body.query);
         const schema = new GraphQLSchema({ query, mutation });
+        const { variables: variableValues } = request.body
 
-        const errors = validate(schema, parse(String(query)), [
+        const errors = validate(schema, parse(source), [
             depthLimit(DEPTH),
         ]);
 
@@ -32,7 +33,7 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
             return;
         }
 
-        return await graphql({ schema, source, contextValue: fastify});
+        return await graphql({ schema, source, variableValues, contextValue: fastify});
     }
   );
 };
