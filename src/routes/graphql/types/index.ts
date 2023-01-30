@@ -126,7 +126,6 @@ export const PostInput = new GraphQLInputObjectType({
 export const UpdateUserInput = new GraphQLInputObjectType({
     name: "UpdateUserInput",
     fields: {
-        id: { type: new GraphQLNonNull(GraphQLString) },
         firstName: { type: GraphQLString },
         lastName: { type: GraphQLString },
         email: { type: GraphQLString },
