@@ -1,7 +1,7 @@
 import {
     GraphQLObjectType,
     GraphQLList,
-    GraphQLID,
+    GraphQLID, GraphQLString,
 } from "graphql";
 
 import { User, Profile, Post, MemberTypes } from '../../types';
@@ -12,28 +12,28 @@ export const query =  new GraphQLObjectType({
             users: {
                 type: new GraphQLList(User),
                 description: "Get all users",
-                resolve: function(parent, args, contextValue) {
+                resolve: function({}, {}, contextValue) {
                     return contextValue.db.users.findMany();
                 }
             },
             profiles: {
                 type: new GraphQLList(Profile),
                 description: "Get all profiles",
-                resolve(parent, args, contextValue) {
+                resolve({}, {}, contextValue) {
                     return contextValue.db.profiles.findMany();
                 }
             },
             posts: {
                 type: new GraphQLList(Post),
                 description: "Get all posts",
-                resolve(parent, args, contextValue) {
+                resolve({}, {}, contextValue) {
                     return contextValue.db.posts.findMany();
                 }
             },
             memberTypes: {
                 type: new GraphQLList(MemberTypes),
                 description: "Get all types",
-                resolve(parent, args, contextValue) {
+                resolve({}, {}, contextValue) {
                     return contextValue.db.memberTypes.findMany();
                 }
             },
@@ -41,44 +41,55 @@ export const query =  new GraphQLObjectType({
                 type: User,
                 description: "Get user by ID",
                 args: { id: { type: GraphQLID}},
-                async resolve(parent, args, contextValue) {
-                    const user = await contextValue.db.users.findOne(args.id);
+                async resolve({}, { id }, contextValue) {
+                    const user = await contextValue.db.users.findOne( { key: 'id', equals: id });
+
                     if (!user) {
                         throw contextValue.httpErrors.notFound("User not found");
                     }
+
                     return user;
                 }
             },
             profile: {
                 type: Profile,
+                description: "Get profile by ID",
                 args: { id: { type: GraphQLID}},
-                async resolve(parent, args, contextValue) {
-                    const profile = await contextValue.db.profiles.findOne(args.id);
+                async resolve({}, { id }, contextValue) {
+                    const profile = await contextValue.db.profiles.findOne({ key: 'id', equals: id });
+
                     if (!profile) {
                         throw contextValue.httpErrors.notFound("Profile not found");
                     }
+
                     return profile;
                 },
             },
             post: {
                 type: Post,
+                description: "Get post by ID",
                 args: { id: { type: GraphQLID}},
-                async resolve(parent, args, contextValue) {
-                    const post = await contextValue.db.post.findOne(args.id);
+                async resolve({}, { id }, contextValue) {
+                    const post = await contextValue.db.posts.findOne({ key: 'id', equals: id });
+
                     if (!post) {
                         throw contextValue.httpErrors.notFound("Post not found");
                     }
+
                     return post;
                 },
             },
             memberType: {
                 type: MemberTypes,
-                args: { id: { type: GraphQLID}},
-                async resolve(parent, args, contextValue) {
-                    const type = await contextValue.db.post.findOne(args.id);
+                description: "Get memberType by ID",
+                args: { id: { type: GraphQLString } },
+                async resolve({}, { id }, contextValue) {
+                    const type = await contextValue.db.memberTypes.findOne({ key: 'id', equals: id });
+
                     if (!type) {
                         throw contextValue.httpErrors.notFound("Type not found");
                     }
+
                     return type;
                 }
             },

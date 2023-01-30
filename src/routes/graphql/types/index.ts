@@ -1,10 +1,13 @@
 import {
+    GraphQLID,
+    GraphQLInputObjectType,
+    GraphQLInt,
+    GraphQLList,
+    GraphQLNonNull,
     GraphQLObjectType,
     GraphQLString,
-    GraphQLList,
-    GraphQLID,
-    GraphQLInt, GraphQLNonNull, GraphQLInputObjectType,
 } from "graphql";
+import {PostEntity} from "../../../utils/DB/entities/DBPosts";
 
 export const Profile = new GraphQLObjectType({
     name: "Profile",
@@ -36,8 +39,24 @@ export const MemberTypes = new GraphQLObjectType({
     fields: {
         id: { type: GraphQLString },
         discount: { type: GraphQLInt },
-        monthPostsLimit: { type: GraphQLString },
+        monthPostsLimit: { type: GraphQLInt },
     },
+});
+
+export const UserSubscribe = new GraphQLObjectType({
+    name: "UserSubscribe",
+    fields: {
+        id: {type: GraphQLID},
+        firstName: {type: GraphQLString},
+        lastName: {type: GraphQLString},
+        email: {type: GraphQLString},
+        subscribedToUserIds: {type: new GraphQLList(GraphQLString)},
+        subscribedToUser: {type: new GraphQLList(GraphQLString)},
+        userSubscribedTo: {type: new GraphQLList(GraphQLString)},
+        profile: {type: Profile},
+        posts: {type: new GraphQLList(Post)},
+        memberTypes: {type: MemberTypes},
+    }
 });
 
 export const User = new GraphQLObjectType({
@@ -48,33 +67,52 @@ export const User = new GraphQLObjectType({
         lastName: { type: GraphQLString },
         email: { type: GraphQLString },
         subscribedToUserIds: { type: new GraphQLList(GraphQLString) },
+        subscribedToUser: {
+            type: new GraphQLList(UserSubscribe),
+            async resolve ({ subscribedToUserIds }, args, contextValue) {
+                return await contextValue.db.users.findMany({
+                    key: 'id',
+                    equalsAnyOf: subscribedToUserIds,
+                });
+            },
+        },
+        userSubscribedTo: {
+            type: new GraphQLList(UserSubscribe),
+            async resolve ({ subscribedToUserIds }, args, contextValue) {
+                return await contextValue.loaders.users.loadMany(subscribedToUserIds);
+            },
+        },
         profile: {
             type: Profile,
-            resolve(parent, args, contextValue) {
+            resolve({ id }, args, contextValue) {
                 return contextValue.db.profiles.findOne({
                     key: "id",
-                    equals: parent.id,
+                    equals: id,
                 });
             },
         },
         posts: {
             type: new GraphQLList(Post),
-            resolve(parent, args, contextValue) {
-                return contextValue.db.posts.findOne({
-                    key: "id",
-                    equals: parent.id,
-                });
+            async resolve({ id }, args, contextValue) {
+                const posts = await contextValue.db.posts.findMany();
+                return posts.filter((post: PostEntity) => post.userId === id);
             },
         },
         memberTypes: {
             type: MemberTypes,
-            resolve(parent, args, contextValue) {
-                return contextValue.db.memberTypes.findOne({
+            async resolve({ id }, args, contextValue) {
+                const profile = await contextValue.db.profiles.findOne({key:'userId', equals: id});
+
+                if(!profile) {
+                    return
+                }
+
+                return await contextValue.db.memberTypes.findOne({
                     key: "id",
-                    equals: parent.id,
+                    equals: profile.memberTypeId,
                 });
             },
-        }
+        },
     },
 });
 
@@ -111,6 +149,7 @@ export const UpdateProfileInput = new GraphQLInputObjectType({
         street: { type: new GraphQLNonNull(GraphQLString) },
         city: { type: new GraphQLNonNull(GraphQLString) },
         memberTypeId: { type: new GraphQLNonNull(GraphQLString)},
+        userId: { type: GraphQLID },
     }
 })
 
@@ -128,10 +167,7 @@ export const UpdateUserInput = new GraphQLInputObjectType({
     fields: {
         firstName: { type: GraphQLString },
         lastName: { type: GraphQLString },
-        email: { type: GraphQLString },
-        subscribedToUserIds: {
-            type: new GraphQLList(GraphQLString)
-        },
+        email: { type: GraphQLString }
     },
 });
 
@@ -139,7 +175,6 @@ export const UpdateUserInput = new GraphQLInputObjectType({
 export const UpdatePostInput = new GraphQLInputObjectType({
     name: "UpdatePostInput",
     fields: {
-        id: { type: new GraphQLNonNull(GraphQLString) },
         title: { type: GraphQLString },
         content: { type: GraphQLString },
     },
@@ -148,7 +183,6 @@ export const UpdatePostInput = new GraphQLInputObjectType({
 export const UpdateMemberInput = new GraphQLInputObjectType({
     name: "UpdateMemberInput",
     fields: {
-        id: { type: new GraphQLNonNull(GraphQLString) },
         discount: { type: GraphQLInt },
         monthPostsLimit: { type: GraphQLInt },
     },
@@ -158,7 +192,6 @@ export const SubscribeUserInput = new GraphQLInputObjectType({
     name: "SubscribeUserInput",
     fields: {
         userId: { type: new GraphQLNonNull(GraphQLString) },
-        SubscriberId: { type: new GraphQLNonNull(GraphQLString) },
     },
 });
 
@@ -166,6 +199,5 @@ export const UnSubscribeUserInput = new GraphQLInputObjectType({
     name: "UnSubscribeUserInput",
     fields: {
         userId: { type: new GraphQLNonNull(GraphQLString) },
-        UnSubscriberId: { type: new GraphQLNonNull(GraphQLString) },
     },
 });

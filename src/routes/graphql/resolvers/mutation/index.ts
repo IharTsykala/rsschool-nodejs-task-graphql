@@ -1,4 +1,4 @@
-import { GraphQLID, GraphQLNonNull, GraphQLObjectType} from "graphql";
+import {GraphQLID, GraphQLNonNull, GraphQLObjectType, GraphQLString} from "graphql";
 
 import {
     MemberTypes,
@@ -36,37 +36,9 @@ export const mutation = new GraphQLObjectType({
             },
         },
 
-        createProfile: {
-            type: Profile,
-            args: {
-                body: {
-                    type: new GraphQLNonNull(ProfileInput)
-                }
-            },
-            resolve: async function (parent, { body, body: { memberTypeId, userId } }, contextValue) {
-                const memberType = await contextValue.db.memberTypes.findOne({
-                    key: "id",
-                    equals: memberTypeId,
-                });
-
-                const profile = await contextValue.db.profiles.findOne({
-                    key: "userId",
-                    equals: userId,
-                });
-                try{
-                    let result
-                if (memberType && !profile) {
-                    result = await contextValue.db.profiles.create(body);
-                }
-                return result
-                } catch (err) {
-                    throw contextValue.httpErrors.badRequest();
-                }
-            },
-        },
-
         createPost: {
             type: Post,
+            description: "Create new post",
             args: {
                 body: {
                     type: new GraphQLNonNull(PostInput)
@@ -93,6 +65,39 @@ export const mutation = new GraphQLObjectType({
             resolve: async (parent, { id, body }, contextValue) => {
                 try {
                     return await contextValue.db.users.change(id, body);
+                } catch (err) {
+                    throw contextValue.httpErrors.badRequest();
+                }
+            },
+        },
+
+        createProfile: {
+            type: Profile,
+            description: "Create new profile",
+            args: {
+                body: {
+                    type: new GraphQLNonNull(ProfileInput)
+                }
+            },
+            resolve: async function (parent, { body, body: { memberTypeId, userId } }, contextValue) {
+                try{
+                    const memberType = await contextValue.db.memberTypes.findOne({
+                        key: "id",
+                        equals: memberTypeId,
+                    });
+
+                    const profile = await contextValue.db.profiles.findOne({
+                        key: "userId",
+                        equals: userId,
+                    });
+
+                    let result
+
+                    if (memberType && !profile) {
+                        result = await contextValue.db.profiles.create(body);
+                    }
+
+                    return result
                 } catch (err) {
                     throw contextValue.httpErrors.badRequest();
                 }
@@ -139,6 +144,7 @@ export const mutation = new GraphQLObjectType({
             type: MemberTypes,
             description: "Update member type data",
             args: {
+                id: { type: new GraphQLNonNull(GraphQLString) },
                 body: {
                     type: new GraphQLNonNull(UpdateMemberInput)
                 }
@@ -174,12 +180,20 @@ export const mutation = new GraphQLObjectType({
                 });
 
                 if (!user || !userToSubscribe) {
-                    throw contextValue.httpErrors.notFound()
+                    return  contextValue.httpErrors.notFound()
+                }
+
+                if(user.subscribedToUserIds.includes(userToSubscribe.id)) {
+                    return
                 }
 
                 await contextValue.db.users.change(user.id, {
                     subscribedToUserIds: [...user.subscribedToUserIds, userToSubscribe.id],
                 });
+
+                 await contextValue.db.users.change(userToSubscribe.id, {
+                     subscribedToUserIds: [...userToSubscribe.subscribedToUserIds, user.id],
+                 });
 
                 return user;
                 } catch {
@@ -210,13 +224,23 @@ export const mutation = new GraphQLObjectType({
                     });
 
                     if (!user || !userToUnSubscribe) {
-                        throw contextValue.httpErrors.notFound();
+                        return contextValue.httpErrors.notFound();
+                    }
+
+                    if(!user.subscribedToUserIds.includes(userToUnSubscribe.id)) {
+                        return
                     }
 
                     await contextValue.db.users.change(user.id, {
                         subscribedToUserIds:
                             user.subscribedToUserIds.filter((userId: typeof GraphQLID) =>
                                 userId !== userToUnSubscribe.id),
+                    });
+
+                    await contextValue.db.users.change(userToUnSubscribe.id, {
+                        subscribedToUserIds:
+                            userToUnSubscribe.subscribedToUserIds.filter((userId: typeof GraphQLID) =>
+                                userId !== user.id),
                     });
 
                     return user;

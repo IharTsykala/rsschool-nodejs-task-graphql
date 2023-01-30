@@ -23,9 +23,16 @@ const plugin: FastifyPluginAsyncJsonSchemaToTs = async (
         const schema = new GraphQLSchema({ query, mutation });
         const { variables: variableValues } = request.body
 
+        if (!source) {
+            throw fastify.httpErrors.badRequest();
+        }
+
         const errors = validate(schema, parse(source), [
             depthLimit(DEPTH),
         ]);
+
+        // @ts-ignore
+        fastify.loaders.clearCache();
 
         if (errors.length > 0) {
             reply.send({ data: null, errors: errors });
