@@ -17,17 +17,17 @@ import {
 } from "../../types";
 
 export const mutation = new GraphQLObjectType({
-    name: "Mutation",
+    name: "mutation",
     fields: {
         createUser: {
             type: User,
             args: {
-                input: {
+                body: {
                     type: new GraphQLNonNull(UserInput)
                 }
             },
             description: "Create new user",
-            resolve: function (parent, { input: { firstName, lastName, email } }, contextValue) {
+            resolve: function (parent, { body: { firstName, lastName, email } }, contextValue) {
                 try {
                     return contextValue.db.users.create({ firstName, lastName, email });
                 } catch (err) {
@@ -39,11 +39,11 @@ export const mutation = new GraphQLObjectType({
         createProfile: {
             type: Profile,
             args: {
-                input: {
+                body: {
                     type: new GraphQLNonNull(ProfileInput)
                 }
             },
-            resolve: async function (parent, { input, input: { memberTypeId, userId } }, contextValue) {
+            resolve: async function (parent, { body, body: { memberTypeId, userId } }, contextValue) {
                 const memberType = await contextValue.db.memberTypes.findOne({
                     key: "id",
                     equals: memberTypeId,
@@ -56,7 +56,7 @@ export const mutation = new GraphQLObjectType({
                 try{
                     let result
                 if (memberType && !profile) {
-                    result = await contextValue.db.profiles.create(input);
+                    result = await contextValue.db.profiles.create(body);
                 }
                 return result
                 } catch (err) {
@@ -68,13 +68,13 @@ export const mutation = new GraphQLObjectType({
         createPost: {
             type: Post,
             args: {
-                input: {
+                body: {
                     type: new GraphQLNonNull(PostInput)
                 }
             },
-            resolve: function (parent, { input }, contextValue) {
+            resolve: function (parent, { body }, contextValue) {
                 try {
-                return contextValue.db.posts.create(input);
+                return contextValue.db.posts.create(body);
                 } catch (err) {
                     throw contextValue.httpErrors.badRequest();
                 }
@@ -86,13 +86,13 @@ export const mutation = new GraphQLObjectType({
             description: "Update user data",
             args: {
                 id: { type: new GraphQLNonNull(GraphQLID) },
-                input: {
+                body: {
                     type: new GraphQLNonNull(UpdateUserInput)
                 },
             },
-            resolve: async (parent, { id, input }, contextValue) => {
+            resolve: async (parent, { id, body }, contextValue) => {
                 try {
-                    return await contextValue.db.users.change(id, input);
+                    return await contextValue.db.users.change(id, body);
                 } catch (err) {
                     throw contextValue.httpErrors.badRequest();
                 }
@@ -104,13 +104,13 @@ export const mutation = new GraphQLObjectType({
             description: "Update profile data",
             args: {
                 id: { type: new GraphQLNonNull(GraphQLID) },
-                input: {
+                body: {
                     type: new GraphQLNonNull(UpdateProfileInput)
                 }
             },
-            resolve: async (parent, { id, input }, contextValue) => {
+            resolve: async (parent, { id, body }, contextValue) => {
                 try {
-                    return await contextValue.db.profiles.change(id, input);
+                    return await contextValue.db.profiles.change(id, body);
                 } catch (err) {
                     throw contextValue.httpErrors.badRequest();
                 }
@@ -122,13 +122,13 @@ export const mutation = new GraphQLObjectType({
             description: "Update post data",
             args: {
                 id: { type: new GraphQLNonNull(GraphQLID) },
-                input: {
+                body: {
                     type: new GraphQLNonNull(UpdatePostInput)
                 }
             },
-            resolve: async (parent, { id, input }, contextValue) => {
+            resolve: async (parent, { id, body }, contextValue) => {
                 try {
-                    return await contextValue.db.posts.change(id, input);
+                    return await contextValue.db.posts.change(id, body);
                 } catch (err) {
                     throw contextValue.httpErrors.badRequest();
                 }
@@ -139,13 +139,13 @@ export const mutation = new GraphQLObjectType({
             type: MemberTypes,
             description: "Update member type data",
             args: {
-                input: {
+                body: {
                     type: new GraphQLNonNull(UpdateMemberInput)
                 }
             },
-            resolve: async (parent, { id, input }, contextValue) => {
+            resolve: async (parent, { id, body }, contextValue) => {
                 try {
-                    return await contextValue.db.memberTypes.change(id, input);
+                    return await contextValue.db.memberTypes.change(id, body);
                 } catch (err) {
                     throw contextValue.httpErrors.badRequest();
                 }
@@ -157,11 +157,11 @@ export const mutation = new GraphQLObjectType({
             description: "Subscribe to user by ID",
             args: {
                 id: { type: new GraphQLNonNull(GraphQLID) },
-                input: {
+                body: {
                     type: new GraphQLNonNull(SubscribeUserInput)
                 }
             },
-            resolve: async (parent, {id: userId, input: { idToSubscribe } }, contextValue) => {
+            resolve: async (parent, {id: userId, body: { idToSubscribe } }, contextValue) => {
              try{
                 const user = await contextValue.db.users.findOne({
                     key: "id",
@@ -193,11 +193,11 @@ export const mutation = new GraphQLObjectType({
             description: "Unsubscribe from user by ID",
             args: {
                 id: { type: new GraphQLNonNull(GraphQLID) },
-                input: {
+                body: {
                     type: new GraphQLNonNull(UnSubscribeUserInput)
                 }
             },
-            resolve: async (parent, {id: userId, input: { idToUnsubscribe } }, contextValue) => {
+            resolve: async (parent, {id: userId, body: { idToUnsubscribe } }, contextValue) => {
                 try {
                     const user = await contextValue.db.users.findOne({
                         key: "id",
