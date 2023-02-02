@@ -43,32 +43,17 @@ export const MemberTypes = new GraphQLObjectType({
     },
 });
 
-export const UserSubscribe = new GraphQLObjectType({
-    name: "UserSubscribe",
-    fields: {
-        id: {type: GraphQLID},
-        firstName: {type: GraphQLString},
-        lastName: {type: GraphQLString},
-        email: {type: GraphQLString},
-        subscribedToUserIds: {type: new GraphQLList(GraphQLString)},
-        subscribedToUser: {type: new GraphQLList(GraphQLString)},
-        userSubscribedTo: {type: new GraphQLList(GraphQLString)},
-        profile: {type: Profile},
-        posts: {type: new GraphQLList(Post)},
-        memberTypes: {type: MemberTypes},
-    }
-});
-
+// @ts-ignore
 export const User = new GraphQLObjectType({
     name: "User",
-    fields: {
+    fields: () => ({
         id: { type: GraphQLID },
         firstName: { type: GraphQLString },
         lastName: { type: GraphQLString },
         email: { type: GraphQLString },
         subscribedToUserIds: { type: new GraphQLList(GraphQLString) },
         subscribedToUser: {
-            type: new GraphQLList(UserSubscribe),
+            type: new GraphQLList(User),
             async resolve ({ subscribedToUserIds }, args, contextValue) {
                 return await contextValue.db.users.findMany({
                     key: 'id',
@@ -77,7 +62,7 @@ export const User = new GraphQLObjectType({
             },
         },
         userSubscribedTo: {
-            type: new GraphQLList(UserSubscribe),
+            type: new GraphQLList(User),
             async resolve ({ subscribedToUserIds }, args, contextValue) {
                 return await contextValue.loaders.users.loadMany(subscribedToUserIds);
             },
@@ -113,7 +98,7 @@ export const User = new GraphQLObjectType({
                 });
             },
         },
-    },
+    }),
 });
 
 export const UserInput = new GraphQLInputObjectType({
