@@ -58,7 +58,7 @@ export const profilesQuery = {
   },
 };
 
-const profileInputObject = new GraphQLInputObjectType({
+const profileInput = new GraphQLInputObjectType({
   name: 'CreateProfileInput',
   fields: () => ({
     userId: { type: new GraphQLNonNull(UUIDType) },
@@ -73,7 +73,7 @@ export const profilesMutation = {
     type: profileObject as GraphQLObjectType,
     args: {
       dto: {
-        type: new GraphQLNonNull(profileInputObject),
+        type: new GraphQLNonNull(profileInput),
       },
     },
     resolve: async (_, { dto }: IProfile, { prisma }: Context): Promise<unknown> => {

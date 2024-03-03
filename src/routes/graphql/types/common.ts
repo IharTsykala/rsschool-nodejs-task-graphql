@@ -1,18 +1,14 @@
 import { User } from '@prisma/client';
 
+interface IUserDTO {
+  name: string;
+  balance: number;
+}
+
 export interface IUser extends User {
   id: string;
   memberTypeId: string;
-}
-
-interface IPostDTO {
-  authorId: string;
-  title: string;
-  content: string;
-}
-
-export interface IPost {
-  dto: IPostDTO;
+  dto: IUserDTO;
 }
 
 interface IProfileDTO {
@@ -24,4 +20,14 @@ interface IProfileDTO {
 
 export interface IProfile {
   dto: IProfileDTO;
+}
+
+interface IPostDTO {
+  authorId: string;
+  title: string;
+  content: string;
+}
+
+export interface IPost {
+  dto: IPostDTO;
 }

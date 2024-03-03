@@ -3,7 +3,7 @@ import { Type } from '@fastify/type-provider-typebox';
 import { GraphQLObjectType, GraphQLSchema } from 'graphql/type/index.js';
 
 //types
-import { usersQuery } from './types/users.js';
+import { usersMutation, usersQuery } from './types/users.js';
 import { memberTypeQuery } from './types/member-types.js';
 import { profilesMutation, profilesQuery } from './types/profiles.js';
 import { postsMutation, postsQuery } from './types/posts.js';
@@ -40,6 +40,7 @@ export const query = new GraphQLObjectType({
 export const mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
+    ...usersMutation,
     ...profilesMutation,
     ...postsMutation,
   }),
