@@ -9,7 +9,7 @@ import {
 } from 'graphql/type/index.js';
 import { profileObject } from './profiles.js';
 import { postsListType } from './posts.js';
-import { IProfile, ISubscription, IUser } from './common.js';
+import { ISubscription, IUser } from './common.js';
 import { Context } from './context.js';
 
 //uuid
