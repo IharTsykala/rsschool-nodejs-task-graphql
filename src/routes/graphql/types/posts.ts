@@ -69,4 +69,18 @@ export const postsMutation = {
       });
     },
   },
+
+  deletePost: {
+    type: UUIDType,
+    args: {
+      id: {
+        type: new GraphQLNonNull(UUIDType),
+      },
+    },
+    resolve: async (_, { id }: IUser, { prisma }: Context): Promise<void> => {
+      await prisma.post.delete({
+        where: { id },
+      });
+    },
+  },
 };
