@@ -19,6 +19,7 @@ interface IProfileDTO {
 }
 
 export interface IProfile {
+  id: string;
   dto: IProfileDTO;
 }
 
@@ -29,5 +30,10 @@ interface IPostDTO {
 }
 
 export interface IPost {
+  id: string;
   dto: IPostDTO;
 }
+
+export interface ISubscription
+  extends Pick<IProfileDTO, 'userId'>,
+    Pick<IPostDTO, 'authorId'> {}

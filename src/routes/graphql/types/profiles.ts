@@ -68,6 +68,15 @@ const profileInput = new GraphQLInputObjectType({
   }),
 });
 
+const changeProfileInput = new GraphQLInputObjectType({
+  name: 'ChangeProfileInput',
+  fields: () => ({
+    memberTypeId: { type: memberTypeEnum },
+    isMale: { type: GraphQLBoolean },
+    yearOfBirth: { type: GraphQLInt },
+  }),
+});
+
 export const profilesMutation = {
   createProfile: {
     type: profileObject as GraphQLObjectType,
@@ -78,6 +87,24 @@ export const profilesMutation = {
     },
     resolve: async (_, { dto }: IProfile, { prisma }: Context): Promise<unknown> => {
       return prisma.profile.create({
+        data: dto,
+      });
+    },
+  },
+
+  changeProfile: {
+    type: profileObject as GraphQLObjectType,
+    args: {
+      id: {
+        type: new GraphQLNonNull(UUIDType),
+      },
+      dto: {
+        type: new GraphQLNonNull(changeProfileInput),
+      },
+    },
+    resolve: async (_, { id, dto }: IProfile, { prisma }: Context): Promise<unknown> => {
+      return prisma.profile.update({
+        where: { id },
         data: dto,
       });
     },

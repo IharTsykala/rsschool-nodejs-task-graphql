@@ -45,7 +45,7 @@ export const postsQuery = {
   },
 };
 
-export const postInputObject = new GraphQLInputObjectType({
+const postInput = new GraphQLInputObjectType({
   name: 'CreatePostInput',
   fields: () => ({
     authorId: { type: new GraphQLNonNull(UUIDType) },
@@ -54,17 +54,43 @@ export const postInputObject = new GraphQLInputObjectType({
   }),
 });
 
+export const changePostInput = new GraphQLInputObjectType({
+  name: 'ChangePostInput',
+  fields: () => ({
+    title: { type: GraphQLString },
+    content: { type: GraphQLString },
+  }),
+});
+
 export const postsMutation = {
   createPost: {
     type: postObject,
     args: {
       dto: {
-        type: new GraphQLNonNull(postInputObject),
+        type: new GraphQLNonNull(postInput),
       },
     },
 
     resolve: async (_, { dto }: IPost, { prisma }: Context): Promise<unknown> => {
       return prisma.post.create({
+        data: dto,
+      });
+    },
+  },
+
+  changePost: {
+    type: postObject,
+    args: {
+      id: {
+        type: new GraphQLNonNull(UUIDType),
+      },
+      dto: {
+        type: new GraphQLNonNull(changePostInput),
+      },
+    },
+    resolve: async (_, { id, dto }: IPost, { prisma }: Context): Promise<unknown> => {
+      return prisma.post.update({
+        where: { id },
         data: dto,
       });
     },
