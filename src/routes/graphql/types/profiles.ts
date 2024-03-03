@@ -82,4 +82,18 @@ export const profilesMutation = {
       });
     },
   },
+
+  deleteProfile: {
+    type: UUIDType,
+    args: {
+      id: {
+        type: new GraphQLNonNull(UUIDType),
+      },
+    },
+    resolve: async (_, { id }: IUser, { prisma }: Context): Promise<void> => {
+      await prisma.profile.delete({
+        where: { id },
+      });
+    },
+  },
 };
