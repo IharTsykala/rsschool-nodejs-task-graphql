@@ -5,7 +5,7 @@ import { GraphQLObjectType, GraphQLSchema } from 'graphql/type/index.js';
 //types
 import { usersQuery } from './types/users.js';
 import { memberTypeQuery } from './types/member-types.js';
-import { profilesQuery } from './types/profiles.js';
+import { profilesMutation, profilesQuery } from './types/profiles.js';
 import { postsMutation, postsQuery } from './types/posts.js';
 
 export const gqlResponseSchema = Type.Partial(
@@ -40,10 +40,12 @@ export const query = new GraphQLObjectType({
 export const mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
+    ...profilesMutation,
     ...postsMutation,
   }),
 });
 
 export const schema = new GraphQLSchema({
   query,
+  mutation,
 });

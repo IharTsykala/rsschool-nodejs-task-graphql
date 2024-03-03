@@ -5,7 +5,7 @@ export interface IUser extends User {
   memberTypeId: string;
 }
 
-export interface IPostDTO {
+interface IPostDTO {
   authorId: string;
   title: string;
   content: string;
@@ -13,4 +13,15 @@ export interface IPostDTO {
 
 export interface IPost {
   dto: IPostDTO;
+}
+
+interface IProfileDTO {
+  userId: string;
+  memberTypeId: string;
+  isMale: boolean;
+  yearOfBirth: number;
+}
+
+export interface IProfile {
+  dto: IProfileDTO;
 }

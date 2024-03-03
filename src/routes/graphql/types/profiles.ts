@@ -5,9 +5,10 @@ import {
   GraphQLObjectType,
   GraphQLBoolean,
   GraphQLInt,
+  GraphQLInputObjectType,
 } from 'graphql/type/index.js';
-import { IUser } from './common.js';
-import { memberTypeObject } from './member-types.js';
+import { IProfile, IUser } from './common.js';
+import { memberTypeEnum, memberTypeObject } from './member-types.js';
 import { Context } from './context.js';
 import { UUIDType } from './uuid.js';
 
@@ -16,7 +17,7 @@ export const profileObject = new GraphQLObjectType({
   fields: () => ({
     id: { type: UUIDType },
     userId: { type: UUIDType },
-    memberTypeId: { type: UUIDType },
+    memberTypeId: { type: memberTypeEnum },
     isMale: { type: GraphQLBoolean },
     yearOfBirth: { type: GraphQLInt },
     memberType: {
@@ -53,6 +54,32 @@ export const profilesQuery = {
     type: new GraphQLList(profileObject),
     resolve: async (_, __, { prisma }: Context): Promise<unknown> => {
       return prisma.profile.findMany();
+    },
+  },
+};
+
+const profileInputObject = new GraphQLInputObjectType({
+  name: 'CreateProfileInput',
+  fields: () => ({
+    userId: { type: new GraphQLNonNull(UUIDType) },
+    memberTypeId: { type: new GraphQLNonNull(memberTypeEnum) },
+    isMale: { type: new GraphQLNonNull(GraphQLBoolean) },
+    yearOfBirth: { type: new GraphQLNonNull(GraphQLInt) },
+  }),
+});
+
+export const profilesMutation = {
+  createProfile: {
+    type: profileObject as GraphQLObjectType,
+    args: {
+      dto: {
+        type: new GraphQLNonNull(profileInputObject),
+      },
+    },
+    resolve: async (_, { dto }: IProfile, { prisma }: Context): Promise<unknown> => {
+      return prisma.profile.create({
+        data: dto,
+      });
     },
   },
 };
