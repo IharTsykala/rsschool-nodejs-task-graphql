@@ -60,7 +60,7 @@ test/types/index.js
 # compiled app
 dist
 
-.env
+.env.axemple
 
 database.db
 database.db-journal
